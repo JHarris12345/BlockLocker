@@ -92,7 +92,8 @@
         </dependency>
     </dependencies>
     <build>
-        <!-- Define filtering for the inclusion of plugin.yml, so we can utilize 
+        <finalName>BlockLocker</finalName>
+        <!-- Define filtering for the inclusion of plugin.yml, so we can utilize
 			the pom.xml version in it -->
         <resources>
             <resource>
