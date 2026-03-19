@@ -82,8 +82,10 @@ public class SignChangeListener extends EventListener {
             } else {
                 // Second main sign is not allowed
                 plugin.getTranslator().sendMessage(player, Translation.PROTECTION_ADD_MORE_USERS_SIGN_INSTEAD);
-                block.breakNaturally(); // Not ideal if other side is the main sign
+                //block.breakNaturally(); // Not ideal if other side is the main sign
                 event.setCancelled(true);
+
+                BlockDestroyListener.cancelSignEvent(player, event.getBlock());
                 return;
             }
         }
@@ -107,8 +109,10 @@ public class SignChangeListener extends EventListener {
 
         if (!player.hasPermission(Permissions.CAN_PROTECT)) {
             plugin.getTranslator().sendMessage(player, Translation.PROTECTION_NO_PERMISSION_FOR_CLAIM);
-            block.breakNaturally();
+            //block.breakNaturally();
             event.setCancelled(true);
+
+            BlockDestroyListener.cancelSignEvent(player, event.getBlock());
             return;
         }
 
@@ -117,31 +121,39 @@ public class SignChangeListener extends EventListener {
             plugin.getLocationCheckers().checkLocationAndPermission(player, block);
         } catch (IllegalLocationException e) {
             player.sendMessage(e.getTranslatedMessage(plugin.getTranslator()));
-            block.breakNaturally();
+            //block.breakNaturally();
             event.setCancelled(true);
+
+            BlockDestroyListener.cancelSignEvent(player, event.getBlock());
             return;
         }
 
         // Only the main sign can be used to create new protections
         if (!signType.isMainSign()) {
             plugin.getTranslator().sendMessage(player, Translation.PROTECTION_NOT_NEARBY);
-            block.breakNaturally();
+            //block.breakNaturally();
             event.setCancelled(true);
+
+            BlockDestroyListener.cancelSignEvent(player, event.getBlock());
             return;
         }
 
         // Sign must be attached to container
         if (!plugin.getProtectionFinder().isSignNearbyProtectable(block)) {
             plugin.getTranslator().sendMessage(player, Translation.PROTECTION_NOT_NEARBY);
-            block.breakNaturally();
+            //block.breakNaturally();
             event.setCancelled(true);
+
+            BlockDestroyListener.cancelSignEvent(player, event.getBlock());
             return;
         }
 
         // Check event
         if (this.plugin.callEvent(new PlayerProtectionCreateEvent(event.getPlayer(), block)).isCancelled()) {
-            block.breakNaturally();
+            //block.breakNaturally();
             event.setCancelled(true);
+
+            BlockDestroyListener.cancelSignEvent(player, event.getBlock());
             return;
         }
 

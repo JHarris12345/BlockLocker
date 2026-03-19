@@ -7,6 +7,7 @@ import nl.rutgerkok.blocklocker.Translator.Translation;
 import nl.rutgerkok.blocklocker.impl.BlockLockerPluginImpl;
 import nl.rutgerkok.blocklocker.profile.Profile;
 import nl.rutgerkok.blocklocker.protection.Protection;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
@@ -29,6 +30,7 @@ import org.bukkit.event.entity.EntityBreakDoorEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.world.StructureGrowEvent;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.Iterator;
 import java.util.List;
@@ -56,10 +58,12 @@ public class BlockDestroyListener extends EventListener {
         return protectionSign;
     }
 
-    private void destroyOtherSigns(ProtectionSign protectionSign, Protection protection) {
+    private void destroyOtherSigns(ProtectionSign protectionSign, Protection protection, Player player) {
         for (ProtectionSign foundSign : protection.getSigns()) {
             if (!foundSign.equals(protectionSign)) {
-                foundSign.getLocation().getBlock().breakNaturally();
+                //foundSign.getLocation().getBlock().breakNaturally(); // Causes creative dupes
+
+                cancelSignEvent(player, foundSign.getLocation().getBlock());
             }
         }
     }
@@ -88,7 +92,7 @@ public class BlockDestroyListener extends EventListener {
 
         Optional<ProtectionSign> mainSign = asMainSign(block);
         if (mainSign.isPresent()) {
-            destroyOtherSigns(mainSign.get(), protection.get());
+            destroyOtherSigns(mainSign.get(), protection.get(), player);
         }
     }
 
@@ -209,5 +213,13 @@ public class BlockDestroyListener extends EventListener {
                 return;
             }
         }
+    }
+
+    public static void cancelSignEvent(Player player, Block sign) {
+        if (player.getGameMode() == GameMode.SURVIVAL) {
+            String material = sign.getType().toString().replace("WALL_", "");
+            player.getInventory().addItem(new ItemStack(Material.valueOf(material)));
+        }
+        sign.setType(Material.AIR);
     }
 }
