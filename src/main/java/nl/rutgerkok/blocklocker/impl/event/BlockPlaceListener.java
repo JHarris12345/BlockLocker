@@ -121,7 +121,24 @@ public final class BlockPlaceListener extends EventListener {
         }, 20 * 120);
     }
 
+    private boolean isHopperOrRail(Material material) {
+        return material == Material.HOPPER
+                || material == Material.RAIL
+                || material == Material.POWERED_RAIL
+                || material == Material.DETECTOR_RAIL
+                || material == Material.ACTIVATOR_RAIL;
+    }
+
     private Optional<Protection> willInterfereWith(Player player, Block block) {
+        // Prevent placing hoppers or rails under protected containers
+        if (isHopperOrRail(block.getType())) {
+            Block above = block.getRelative(BlockFace.UP);
+            Optional<Protection> aboveProtection = getProtectionBySomeoneElse(player, above);
+            if (aboveProtection.isPresent()) {
+                return aboveProtection;
+            }
+        }
+
         if (this.plugin.getChestSettings().getConnectContainers()) {
             return willInterfereWithConnectedContainers(player, block);
         } else {
