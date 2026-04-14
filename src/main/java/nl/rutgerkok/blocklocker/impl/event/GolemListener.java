@@ -7,10 +7,16 @@ import nl.rutgerkok.blocklocker.SearchMode;
 import nl.rutgerkok.blocklocker.impl.BlockLockerPluginImpl;
 import nl.rutgerkok.blocklocker.profile.Profile;
 import nl.rutgerkok.blocklocker.protection.Protection;
+import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
+import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
 
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Listener for just golems. Separated to allow the plugin to run on older Minecraft versions. In the future, when
@@ -31,6 +37,8 @@ public final class GolemListener extends EventListener {
         }
 
         Block block = event.getBlock();
+        Entity golem = event.getEntity();
+
         ProtectionCache cache = this.plugin.getProtectionCache();
         ProtectionCache.CacheFlag cacheFlag = cache.getAllowed(block, ProtectionCache.CacheType.GOLEM);
         if (cacheFlag == ProtectionCache.CacheFlag.ALLOWED) {
@@ -54,5 +62,13 @@ public final class GolemListener extends EventListener {
         if (!allowed) {
             event.setAllowed(false);
         }
+    }
+
+    public static UUID getCopperGolemOwner(Entity copperGolem) {
+        Plugin iCore = Bukkit.getPluginManager().getPlugin("InsanityCore");
+        if (iCore == null) return null;
+
+        String data = copperGolem.getPersistentDataContainer().get(new NamespacedKey(iCore, "copperGolemOwner"), PersistentDataType.STRING);
+        return (data == null) ? null : UUID.fromString(data);
     }
 }
