@@ -2,6 +2,7 @@ package nl.rutgerkok.blocklocker.impl.event;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import nl.rutgerkok.blocklocker.*;
 
@@ -287,6 +288,18 @@ public final class InteractListener extends EventListener {
             }
             Optional<Protection> protection = plugin.getProtectionFinder().findProtection(event.getBlock(), SearchMode.MAIN_BLOCKS_ONLY);
             if (protection.isEmpty()) {
+                return;
+            }
+            // Check if the copper golem has a player owner
+            UUID ownerUuid = GolemListener.getCopperGolemOwner(entity);
+            if (ownerUuid != null) {
+                OfflinePlayer owner = Bukkit.getOfflinePlayer(ownerUuid);
+                Profile ownerProfile = plugin.getProfileFactory().fromNameAndUniqueId(
+                        owner.getName() != null ? owner.getName() : ownerUuid.toString(),
+                        Optional.of(ownerUuid));
+                if (!protection.get().isAllowed(ownerProfile)) {
+                    event.setCancelled(true);
+                }
                 return;
             }
             if (!protection.get().isAllowed(plugin.getProfileFactory().fromGolem())) {

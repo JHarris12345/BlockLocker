@@ -9,6 +9,7 @@ import nl.rutgerkok.blocklocker.profile.Profile;
 import nl.rutgerkok.blocklocker.protection.Protection;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
@@ -39,6 +40,25 @@ public final class GolemListener extends EventListener {
         Block block = event.getBlock();
         Entity golem = event.getEntity();
 
+        // Check if the copper golem has a player owner
+        UUID ownerUuid = getCopperGolemOwner(golem);
+        if (ownerUuid != null) {
+            // Owner found - check permissions as the owner player, bypassing golem cache
+            Optional<Protection> protection = plugin.getProtectionFinder().findProtection(block, SearchMode.MAIN_BLOCKS_ONLY);
+            if (protection.isEmpty()) {
+                return;
+            }
+            OfflinePlayer owner = Bukkit.getOfflinePlayer(ownerUuid);
+            Profile ownerProfile = plugin.getProfileFactory().fromNameAndUniqueId(
+                    owner.getName() != null ? owner.getName() : ownerUuid.toString(),
+                    Optional.of(ownerUuid));
+            if (!protection.get().isAllowed(ownerProfile)) {
+                event.setAllowed(false);
+            }
+            return;
+        }
+
+        // No owner - use golem profile with cache
         ProtectionCache cache = this.plugin.getProtectionCache();
         ProtectionCache.CacheFlag cacheFlag = cache.getAllowed(block, ProtectionCache.CacheType.GOLEM);
         if (cacheFlag == ProtectionCache.CacheFlag.ALLOWED) {
